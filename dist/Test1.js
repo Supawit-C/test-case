@@ -1,4 +1,4 @@
-const utils = require('./Utils').utils;
+import { utils } from './Utils.js';
 const unit_test = async () => {
     if (utils.add(2, 3) === 5) {
         console.log("Test passed!");
@@ -11,9 +11,8 @@ const unit_test = async () => {
         console.log("Test passed!");
     }
     else {
-        console.log("Case 2 Failed: Expected 5 but got " + utils.add(2, 2));
+        console.log("Case 2 Failed: Expected 4 but got " + utils.add(2, 2));
         process.exit(1);
     }
 };
 unit_test();
-export {};
