@@ -1,12 +1,64 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import userRoutes from './UserRoutes.js';
 
+interface LocalConfig {
+    connection?: string;
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello, World!');
+app.use(express.json());
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (_req: Request, res: Response) => {
+    res.send('User API is running. Open /test.html to try it.');
 });
 
-app.listen(port, () => {
-    console.log(`Server is running ${port}`);
+app.use('/api', userRoutes);
+
+function getMongoUri(): string | undefined {
+    if (process.env.MONGODB_URI) {
+        return process.env.MONGODB_URI;
+    }
+
+    const configPath = path.join(process.cwd(), 'config.json');
+    if (!fs.existsSync(configPath)) {
+        return undefined;
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as LocalConfig;
+    return config.connection;
+}
+
+async function startServer(): Promise<void> {
+    const mongoUri = getMongoUri();
+
+    if (!mongoUri) {
+        throw new Error(
+            'MongoDB connection missing. Set MONGODB_URI or create config.json from config.example.json.',
+        );
+    }
+
+    await mongoose.connect(mongoUri);
+    console.log('Connected to MongoDB');
+
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+    });
+}
+
+startServer().catch((error: unknown) => {
+    console.error('Unable to start server:', error);
+    process.exitCode = 1;
 });
+
+export default app;

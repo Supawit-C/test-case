@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User API test</title>
+</head>
+<body>
+  <h1>Add New User</h1>
+  <form id="user-form">
+    <label>Name <input name="name" required></label><br>
+    <label>Email <input name="email" type="email" required></label><br>
+    <label>Password <input name="password" type="password" required></label><br>
+    <button type="submit">Create user</button>
+  </form>
+  <pre id="result" aria-live="polite"></pre>
+
+  <script>
+    const form = document.querySelector('#user-form');
+    const result = document.querySelector('#result');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const body = Object.fromEntries(new FormData(form));
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      result.textContent = response.ok
+        ? `User added successfully!\n${JSON.stringify(data, null, 2)}`
+        : `Failed to add user: ${data.message ?? 'Unknown error'}`;
+    });
+  </script>
+</body>
+</html>
