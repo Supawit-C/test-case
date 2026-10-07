@@ -29,11 +29,13 @@ function getMongoUri() {
 }
 async function startServer() {
     const mongoUri = getMongoUri();
-    if (!mongoUri) {
-        throw new Error('MongoDB connection missing. Set MONGODB_URI or create config.json from config.example.json.');
+    if (mongoUri) {
+        await mongoose.connect(mongoUri);
+        console.log('Connected to MongoDB');
     }
-    await mongoose.connect(mongoUri);
-    console.log('Connected to MongoDB');
+    else {
+        console.warn('MongoDB connection not configured. The server is running, but database-backed API routes are unavailable.');
+    }
     app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
     });
